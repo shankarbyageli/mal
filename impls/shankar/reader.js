@@ -1,4 +1,4 @@
-const { List, Vector, Str, Symbol, HashMap } = require("./types");
+const { List, Vector, Str, Symbol, HashMap, Keyword, Nil } = require("./types");
 
 class Reader {
   constructor(tokens) {
@@ -37,9 +37,18 @@ const read_atom = (reader) => {
   if (token.match(/^-?[0-9]+\.[0-9]+$/)) {
     return parseFloat(token);
   }
+  if (token === "true") {
+    return true;
+  }
+  if (token === "false") {
+    return false;
+  }
+  if (token === "nil") {
+    return new Nil();
+  }
   if (token[0] === '"') {
     if (!/[^\\]"$/.test(token)) {
-      throw new Error("Unbalanced");
+      throw new Error("unbalanced");
     }
     return new Str(token.substring(1, token.length - 1));
   }
@@ -50,7 +59,7 @@ const read_sequence = (reader, closingChar) => {
   const sequence = [];
   while((token = reader.peek()) !== closingChar) {
     if (!token) {
-      throw new Error("Unbalanced");
+      throw new Error("unbalanced");
     }
     sequence.push(read_form(reader));
     reader.next();
@@ -70,6 +79,9 @@ const read_vector = (reader) => {
 
 const read_hashmap = (reader) => {
   const hashmap = read_sequence(reader, "}");
+  if (hashmap.length % 2 !== 0) {
+    throw new Error("odd number of values in hashmap")
+  }
   return new HashMap(hashmap);
 };
 
@@ -86,12 +98,14 @@ const read_form = (reader) => {
     case "{":
       reader.next();
       return read_hashmap(reader);
+    case ":":
+      return new Keyword(token.slice(1));
     case ")":
-      throw new Error("Unbalanced");
+      throw new Error("unbalanced");
     case "]":
-      throw new Error("Unbalanced");
+      throw new Error("unbalanced");
     case "}":
-      throw new Error("Unbalanced");
+      throw new Error("unbalanced");
   }
   return read_atom(reader);
 };
