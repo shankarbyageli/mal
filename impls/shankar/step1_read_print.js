@@ -17,7 +17,7 @@ const loop = () => {
   rl.question("=> ", (string) => {
     try {
       console.log(repl(string));
-    } catch {
+    } catch(e) {
       console.log("unbalanced");
     } finally {
       loop();

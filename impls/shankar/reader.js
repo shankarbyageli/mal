@@ -1,3 +1,5 @@
+const { List, Vector, Str, Symbol, HashMap } = require("./types");
+
 class Reader {
   constructor(tokens) {
     this.tokens = tokens.slice();
@@ -35,27 +37,61 @@ const read_atom = (reader) => {
   if (token.match(/^-?[0-9]+\.[0-9]+$/)) {
     return parseFloat(token);
   }
-  return token;
+  if (token[0] === '"') {
+    if (!/[^\\]"$/.test(token)) {
+      throw new Error("Unbalanced");
+    }
+    return new Str(token.substring(1, token.length - 1));
+  }
+  return new Symbol(token);
 };
 
-const read_list = (reader) => {
-  const list = [];
-  while((token = reader.peek()) !== ")") {
+const read_sequence = (reader, closingChar) => {
+  const sequence = [];
+  while((token = reader.peek()) !== closingChar) {
     if (!token) {
       throw new Error("Unbalanced");
     }
-    list.push(read_form(reader));
+    sequence.push(read_form(reader));
     reader.next();
   }
-  return list;
+  return sequence;
+};
+
+const read_list = (reader) => {
+  const list = read_sequence(reader, ")");
+  return new List(list);
+};
+
+const read_vector = (reader) => {
+  const vector = read_sequence(reader, "]");
+  return new Vector(vector);
+};
+
+const read_hashmap = (reader) => {
+  const hashmap = read_sequence(reader, "}");
+  return new HashMap(hashmap);
 };
 
 const read_form = (reader) => {
   const token = reader.peek();
   const firstChar = token[0];
-  if (firstChar === "(") {
-    reader.next();
-    return read_list(reader);
+  switch(firstChar) {
+    case "(":
+      reader.next();
+      return read_list(reader);
+    case "[":
+      reader.next();
+      return read_vector(reader);
+    case "{":
+      reader.next();
+      return read_hashmap(reader);
+    case ")":
+      throw new Error("Unbalanced");
+    case "]":
+      throw new Error("Unbalanced");
+    case "}":
+      throw new Error("Unbalanced");
   }
   return read_atom(reader);
 };
