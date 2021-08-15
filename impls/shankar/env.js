@@ -1,7 +1,15 @@
+const { Symbol } = require("./types");
+
 class Env {
-  constructor(outer) {
+  constructor(outer, binds=[], exprs=[]) {
     this.outer = outer;
     this.data = {};
+    for (let i = 0; i < binds.length; i++) {
+      if (binds[i] instanceof Symbol)
+        this.set(binds[i], exprs[i])
+      else
+        throw new Error("expected symbol but found: " + binds[i]);
+    };
   }
 
   set(key, value) {
