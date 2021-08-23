@@ -100,12 +100,12 @@ class Keyword {
 }
 
 class Fn {
-  constructor(fn) {
+  constructor(fn, isVariadic, ast, env, params) {
     this.fn = fn;
-  }
-
-  call(args) {
-    return this.fn.call(null, args);
+    this.isVariadic = isVariadic;
+    this.ast = ast;
+    this.env = env;
+    this.params = params;
   }
 
   toString() {
@@ -113,4 +113,14 @@ class Fn {
   }
 }
 
-module.exports = { List, Vector, Str, Symbol, HashMap, Keyword, Nil, Fn }
+class Atom {
+  constructor(value) {
+    this.value = value;
+  }
+
+  toString() {
+    return "#<atom>";
+  }
+}
+
+module.exports = { List, Vector, Str, Symbol, HashMap, Keyword, Nil, Fn, Atom }
