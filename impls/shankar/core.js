@@ -1,6 +1,8 @@
+const fs = require("fs");
 const { Env } = require("./env");
-const { Symbol, Fn, Nil, List, Vector, Str } = require("./types");
+const { Symbol, Atom, Nil, List, Vector, Str, Fn } = require("./types");
 const { pr_str } = require("./printer");
+const { read_str } = require("./reader");
 
 const core = new Env(null);
 
@@ -96,7 +98,70 @@ core.set(new Symbol("str"), (args) => {
       return pr_str(x).slice(1, -1);
     return pr_str(x);
   });
-  return '"' + strings.join("") + '"';
+  return new Str(strings.join(""));
+});
+
+core.set(new Symbol("atom"), (args) => {
+  if (args.length === 0) 
+    throw new Error(`wrong number of args(${args.length}) to: atom`);
+    return new Atom(args[0]);
+  });
+  
+core.set(new Symbol("atom?"), (args) => {
+  if (args.length === 0) 
+    throw new Error(`wrong number of args(${args.length}) to: atom?`);
+  return args[0] instanceof Atom;
+});
+    
+core.set(new Symbol("deref"), (args) => {
+  if (args.length === 0) 
+    throw new Error(`wrong number of args(${args.length}) to: deref`);
+  if (args[0] instanceof Atom)
+    return args[0].value;
+  throw new Error(`Cannot deref non-atom value: ${args[0]}`);
+});
+
+core.set(new Symbol("reset!"), (args) => {
+  if (args.length !== 2) 
+    throw new Error(`wrong number of args(${args.length}) to: reset!`);
+  if (args[0] instanceof Atom)
+    return args[0].value = args[1];
+  throw new Error(`Cannot reset non-atom value: ${args[0]}`);
+});
+
+core.set(new Symbol("swap!"), (args) => {
+  if (args.length < 2) 
+    throw new Error(`wrong number of args(${args.length}) to: swap!`);
+  if (args[1] instanceof Fn) {
+    const newValue = args[1].apply([args[0].value, ...args.slice(2)]);
+    args[0].value = newValue;
+    return newValue;
+  }
+  if (typeof(args[1]) === "function") {
+    const newValue = args[1]([args[0].value, ...args.slice(2)]);
+    args[0].value = newValue;
+    return newValue;
+  }
+  throw new Error(`Cannot swap non-atom value: ${args[0]}`);
+});
+
+core.set(new Symbol("read-string"), (args) => {
+  if (args.length == 0) 
+    throw new Error(`wrong number of args(${args.length}) to: read-string`);
+  if (args[0] instanceof Str) {
+    return read_str(args[0].string);
+  }
+  throw new Error(`Cannot read non-string value: ${args[0]}`);
+});
+
+core.set(new Symbol("slurp"), (args) => {
+  if (args.length == 0) 
+  throw new Error(`wrong number of args(${args.length}) to: slurp`);
+  if (args[0] instanceof Str) {
+    const content = fs.readFileSync(args[0].string, "utf8");
+    return new Str(content);
+  }
+  throw new Error(`Filename must be string: ${args[0]}`);
 });
 
 module.exports = { core };

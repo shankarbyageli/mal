@@ -108,6 +108,10 @@ class Fn {
     this.params = params;
   }
 
+  apply(args) {
+    return this.fn(args);
+  }
+
   toString() {
     return "#<function>";
   }
@@ -119,7 +123,7 @@ class Atom {
   }
 
   toString() {
-    return "#<atom>";
+    return `(atom ${this.value})`;
   }
 }
 
