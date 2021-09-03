@@ -156,12 +156,30 @@ core.set(new Symbol("read-string"), (args) => {
 
 core.set(new Symbol("slurp"), (args) => {
   if (args.length == 0) 
-  throw new Error(`wrong number of args(${args.length}) to: slurp`);
+    throw new Error(`wrong number of args(${args.length}) to: slurp`);
   if (args[0] instanceof Str) {
     const content = fs.readFileSync(args[0].string, "utf8");
     return new Str(content);
   }
   throw new Error(`Filename must be string: ${args[0]}`);
+});
+
+core.set(new Symbol("cons"), (args) => {
+  if (args.length !== 2) 
+    throw new Error(`wrong number of args(${args.length}) to: slurp`);
+  if (args[1] instanceof List || args[1] instanceof Vector) {
+    return new List([args[0], ...args[1].ast]);
+  }
+  throw new Error(`Cannot prepend to non-list: ${args[1]}`);
+});
+
+core.set(new Symbol("concat"), (args) => {
+  if (args.every(x => (x instanceof List || x instanceof Vector))) {
+    const list = [];
+    args.forEach(x => list.push(...x.ast));
+    return new List(list);
+  }
+  throw new Error(`Cannot concat non-list item`);
 });
 
 module.exports = { core };

@@ -103,6 +103,17 @@ const read_form = (reader) => {
     case "@":
       reader.next();
       return new List([new Symbol("deref"), new Symbol(reader.peek())]);
+    case "'":
+      reader.next();
+      return new List([new Symbol("quote"), read_form(reader)]);
+    case "`":
+      reader.next();
+      return new List([new Symbol("quasiquote"), read_form(reader)]);
+    case "~":
+      reader.next();
+      if (token[1] === "@")
+        return new List([new Symbol("splice-unquote"), read_form(reader)]);
+      return new List([new Symbol("unquote"), read_form(reader)]);
     case ")":
       throw new Error("unbalanced");
     case "]":
