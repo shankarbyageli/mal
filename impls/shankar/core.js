@@ -182,4 +182,31 @@ core.set(new Symbol("concat"), (args) => {
   throw new Error(`Cannot concat non-list item`);
 });
 
+core.set(new Symbol("nth"), (args) => {
+  if (args[0] instanceof List || args[0] instanceof Vector) {
+    if (args[0].ast.length <= args[1])
+      throw new Error("index out of range")
+    return args[0].ast[args[1]];
+  }
+  throw new Error(`Cannot find element in non-list item`);
+});
+
+core.set(new Symbol("first"), (args) => {
+  if (args[0] instanceof List || args[0] instanceof Vector) {
+    if (args[0].isEmpty())
+      return new Nil();
+    return args[0].ast[0];
+  }
+  return new Nil();
+});
+
+core.set(new Symbol("rest"), (args) => {
+  if (args[0] instanceof List || args[0] instanceof Vector) {
+    if (args[0].isEmpty())
+      return new List([]);
+    return new List(args[0].ast.slice(1));
+  }
+  return new List([]);
+});
+
 module.exports = { core };

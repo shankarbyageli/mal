@@ -106,6 +106,7 @@ class Fn {
     this.ast = ast;
     this.env = env;
     this.params = params;
+    this.isMacro = false;
   }
 
   apply(args) {
